@@ -1,0 +1,60 @@
+name:
+  cloudeval
+version:
+  0.1.0.0
+synopsis:
+  Evaluates whole Haskell "files" online
+-- description:
+license:
+  GPL-3
+license-file:
+  LICENSE
+author:
+  David Flemström
+maintainer:
+  david.flemstrom@gmail.com
+copyright:
+  Copyright © 2013 by David Flemström
+category:
+  Development
+build-type:
+  Simple
+cabal-version:
+  >=1.8
+
+executable cloudeval
+  hs-source-dirs:
+    src
+  main-is:
+    cloudeval.hs
+  ghc-options:
+    -Wall
+    -threaded
+    -with-rtsopts=-N
+    -funbox-strict-fields
+    -O2
+    -fllvm
+    -optc-O4
+    -optc-flto
+  -- other-modules:
+  build-depends:
+      base ==4.6.*
+    , aeson ==0.6.*
+    , bytestring ==0.10.*
+    , conduit ==1.0.*
+    , deepseq ==1.3.*
+    , deepseq-th ==0.1.*
+    , directory ==1.2.*
+    , ghc ==7.6.*
+    , hint ==0.3.3.8
+    , mtl ==2.1.*
+    , parsec ==3.1.*
+    , resourcet ==0.4.*
+    , split ==0.2.*
+    , text ==0.11.*
+    , transformers ==0.3.*
+    , unordered-containers ==0.2.*
+    , yesod ==1.2.*
+    , yesod-static ==1.2.*
+    , wai ==1.4.*
+    , wai-app-static ==1.3.*

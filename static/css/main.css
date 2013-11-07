@@ -1,0 +1,41 @@
+/* Fonts */
+@import url(http://fonts.googleapis.com/css?family=Arvo:400,700,400italic,700italic);
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700);
+
+/* Global styles */
+body {
+  font-family: 'Open Sans', sans-serif;
+  background: #3B3F46;
+  color: white;
+  font-size: 200%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Arvo', serif;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+select {
+  font-size: 50%;
+}
+
+content {
+  display: none;
+}
+
+.impress-supported .fallback-message {
+  display: none;
+}
+
+.slide {
+  width: 960px;
+}
