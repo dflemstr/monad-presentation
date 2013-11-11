@@ -33,7 +33,7 @@ import Network.Wai.Application.Static
 -- Internal GHC module; might break this code in the future!
 import qualified SrcLoc
 
-import WaiAppStatic.Types (unsafeToPiece)
+import System.Environment (getArgs, getProgName)
 
 import Yesod
 import Yesod.Static
@@ -116,7 +116,8 @@ postEvaluateR = do
     -- until ready. TODO: figure out why this exception is thrown
     retryOn MultipleInstancesNotAllowed .
     -- Start the hint interpreter
-    unsafeRunInterpreterWithArgs ["-XSafe"] $ do
+    unsafeRunInterpreterWithArgs ["-XSafe", "-XNoMonomorphismRestriction",
+                                  "-trust vector", "-trust MonadRandom"] $ do
       loadModules [moduleFile]
       loadedModules <- getLoadedModules
       setTopLevelModules loadedModules
@@ -172,7 +173,13 @@ parseError (GhcException err) =
 
 main :: IO ()
 main = do
-  lock <- newMVar ()
-  let staticSettings =
-        (defaultFileServerSettings "static") { ssListing = Nothing }
-  warp 3000 . CloudEval lock . Static $ staticSettings
+  args <- getArgs
+  case args of
+    [port] -> do
+      lock <- newMVar ()
+      let staticSettings =
+            (defaultFileServerSettings "static") { ssListing = Nothing }
+      warp (read port) . CloudEval lock . Static $ staticSettings
+    _ -> do
+      progName <- getProgName
+      putStrLn $ "Usage: " ++ progName ++ " <port>"

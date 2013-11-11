@@ -4,6 +4,8 @@
         <meta name="viewport" content="width=900" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
 
+        <title>Monad presentation &mdash; slides.dflemstr.name</title>
+
         <!-- script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script -->
         <script src="js/jquery.min.js"></script>
         <!-- script src="//ajax.googleapis.com/ajax/libs/angularjs/1.1.5/angular.js"></script -->
@@ -16,66 +18,6 @@
         <link rel="stylesheet" href="css/main.css"/>
         <link rel="stylesheet" href="css/haskell.css"/>
         <link rel="stylesheet" href="css/popover.css"/>
-
-        <content ng-model="test">
-            fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
-
-            result = take 10 fibs
-        </content>
-
-        <content ng-model="doublePrimitive">
-            import GHC.Num   (plusInteger)
-            import GHC.Float (plusFloat)
-
-            doubleInteger :: Integer -> Integer
-            doubleInteger x = plusInteger x x
-
-            doubleFloat :: Float -> Float
-            doubleFloat x = plusFloat x x
-
-            float   = doubleFloat 1.3
-            integer = doubleInteger 4
-        </content>
-
-        <content ng-model="addAbstract">
-            import Prelude (Integer, Float)
-            import GHC.Num (plusInteger)
-            import GHC.Float (plusFloat)
-
-            class Num a where
-              (+) :: a -> a -> a
-
-            instance Num Integer where
-              a + b = plusInteger a b
-
-            instance Num Float where
-              a + b = plusFloat a b
-        </content>
-
-        <content ng-model="doubleNumber">
-            import Data.Complex
-
-            doubleNumber :: Num a => a -> a
-            doubleNumber x = x + x
-
-            float   = doubleNumber 1.3 :: Float
-            integer = doubleNumber 3 :: Integer
-            complex = doubleNumber (2 :+ 3) :: Complex Double
-            ratio   = doubleNumber 2.6 :: Rational
-        </content>
-
-        <content ng-model="doubleMonoid">
-            import Data.Monoid
-
-            doubleMonoid :: Monoid a => a -> a
-            doubleMonoid x = x <> x
-
-            string = doubleMonoid "abc"
-            list = doubleMonoid [1, 2, 3]
-            function = doubleMonoid (++ "!")
-
-            result = function "hej"
-        </content>
     </head>
     <body class="impress-not-supported" ng-controller="MainCtrl">
         <div class="fallback-message">
@@ -100,9 +42,15 @@
                 <h2>Presentationen finns online!</h2>
                 <p>Gå till <a href="{{location}}">{{location}}</a></p>
                 <p>Då kan du även redigera exempelkoden själv:</p>
+
+                <content ng-model="test">
+                    fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
+
+                    result = take 10 fibs
+                </content>
                 <haskell ng-model="test"/>
             </div>
-            <div id="test" class="step slide" data-x="3072" data-y="0">
+            <div id="abstractions" class="step slide" data-x="3072" data-y="0">
                 <h1>Abstraktioner</h1>
                 <p>
                     Lös ett problem, inte en probleminstans.
@@ -113,10 +61,39 @@
                 <p>
                     <strong>Problem att lösa:</strong> Räkna ut ett tals dubbla värde.
                 </p>
+
+                <content ng-model="doublePrimitive">
+                    import GHC.Num   (plusInteger)
+                    import GHC.Float (plusFloat)
+
+                    doubleInteger :: Integer -> Integer
+                    doubleInteger x = plusInteger x x
+
+                    doubleFloat :: Float -> Float
+                    doubleFloat x = plusFloat x x
+
+                    float   = doubleFloat 1.3
+                    integer = doubleInteger 4
+                </content>
                 <haskell ng-model="doublePrimitive"/>
             </div>
             <div id="addition-abstraction" class="step slide" data-x="6144" data-y="0">
                 <h1>Abstrahera addition</h1>
+
+                <content ng-model="addAbstract">
+                    import Prelude   (Integer, Float)
+                    import GHC.Num   (plusInteger)
+                    import GHC.Float (plusFloat)
+
+                    class Num a where
+                      (+) :: a -> a -> a
+
+                    instance Num Integer where
+                      a + b = plusInteger a b
+
+                    instance Num Float where
+                      a + b = plusFloat a b
+                </content>
                 <haskell ng-model="addAbstract"/>
             </div>
             <div id="doubling-numbers" class="step slide" data-x="7680" data-y="0">
@@ -124,6 +101,18 @@
                 <p>
                     <strong>Problem att lösa:</strong> Räkna ut ett tals dubbla värde.
                 </p>
+
+                <content ng-model="doubleNumber">
+                    import Data.Complex
+
+                    doubleNumber :: Num a => a -> a
+                    doubleNumber x = x + x
+
+                    float   = doubleNumber 1.3 :: Float
+                    integer = doubleNumber 3 :: Integer
+                    complex = doubleNumber (2 :+ 3) :: Complex Double
+                    ratio   = doubleNumber 2.6 :: Rational
+                </content>
                 <haskell ng-model="doubleNumber"/>
             </div>
             <div id="doubling-all-the-things" class="step slide" data-x="9216" data-y="0">
@@ -131,7 +120,228 @@
                 <p>
                     <strong>Problem att lösa:</strong> Räkna ut ett <em>objekts</em> dubbla värde.
                 </p>
+
+                <content ng-model="doubleMonoid">
+                    import Data.Monoid
+
+                    doubleMonoid :: Monoid a => a -> a
+                    doubleMonoid x = x <> x
+
+                    string = doubleMonoid "abc"
+                    list = doubleMonoid [1, 2, 3]
+                    sum = getSum $ doubleMonoid (Sum 5)
+                    product = getProduct $ doubleMonoid (Product 5)
+                </content>
                 <haskell ng-model="doubleMonoid"/>
+            </div>
+            <div id="abstractions-overview-polymorphic" class="step slide" data-x="10752" data-y="0">
+                <h1>
+                    Abstraktion via <strong>parameteriserad polymorfism</strong>
+                </h1>
+                <p>(inget nytt för er)</p>
+            </div>
+            <div id="abstractions-overview-advanced" class="step slide" data-x="12288" data-y="0">
+                <h1>Mer avancerade abstraktioner</h1>
+            </div>
+            <div id="map-primitive" class="step slide" data-x="13824" data-y="0">
+                <h1>Transformation utav element i behållare</h1>
+
+                <content ng-model="doubleMap">
+                    import qualified Data.Vector as V
+
+                    doubleList = map (* 2)
+
+                    doubleVector = V.map (* 2)
+
+                    doubleMaybe (Just a) = Just (a * 2)
+                    doubleMaybe Nothing = Nothing
+
+                    list = doubleList [1, 2, 3, 4]
+                    vector = doubleVector $ V.iterateN 4 (+1) 1
+                    maybe = doubleMaybe $ Just 2
+                </content>
+                <haskell ng-model="doubleMap"/>
+            </div>
+            <div id="map-abstraction" class="step slide" data-x="15360" data-y="0">
+                <h1>Abstrakt transformation utav behållare</h1>
+
+                <content ng-model="mapAbstract">
+                    import Prelude (map, Maybe (..))
+                    import qualified Data.Vector as V
+
+                    class Functor f where
+                      fmap :: (a -> b) -> f a -> f b
+
+                    instance Functor [] where
+                      fmap = map
+
+                    instance Functor V.Vector where
+                      fmap = V.map
+
+                    instance Functor Maybe where
+                      fmap f (Just a) = Just (f a)
+                      fmap _ _        = Nothing
+                </content>
+                <haskell ng-model="mapAbstract"/>
+            </div>
+            <div id="map-all-the-things" class="step slide" data-x="16896" data-y="0">
+                <h1>Transformation utav element i <strong>alla</strong> behållare</h1>
+
+                <content ng-model="doubleFunctor">
+                    import Data.Vector as V
+                    import Data.Complex
+
+                    doubleFunctor :: (Functor f, Num a) => f a -> f a
+                    doubleFunctor = fmap (* 2)
+
+                    list = doubleFunctor [1, 2, 3, 4]
+                    vector = doubleFunctor $ V.replicate 4 2
+                    maybe = doubleFunctor $ Just (2 :+ 3)
+                </content>
+                <haskell ng-model="doubleFunctor"/>
+            </div>
+            <div id="functor-change-perspective" class="step slide" data-x="18432" data-y="0">
+                <p>
+                    Ursprungligt perspektiv:
+                </p>
+                <h1>
+                    <code>
+                        fmap <span class="border-accent-1">f</span>
+                        <span class="border-accent-2">container</span>
+                    </code>
+                </h1>
+                <p>
+                    <em>Transformera</em> varje element i
+                    <code><span class="border-accent-2">container</span></code> med
+                    <code><span class="border-accent-1">f</span></code>
+                </p>
+            </div>
+            <div id="functor-changed-perspective" class="step slide" data-x="19968" data-y="0">
+                <p>
+                    Nytt perspektiv:
+                </p>
+                <h1>
+                    <code>
+                        <span class="border-accent-1">f</span> <$>
+                        <span class="border-accent-2">container</span>
+                    </code>
+                </h1>
+                <p>
+                    <em>Applicera</em> <code><span class="border-accent-1">f</span></code> till
+                    innehållet i <code><span class="border-accent-2">container</span></code> (vad
+                    det nu må vara)
+                </p>
+            </div>
+            <div id="misc-functors" class="step slide" data-x="21504" data-y="0">
+                <h1>Vad är en funktor?</h1>
+                <p>
+                    Begreppet <q>behållare</q> blir <q>funktor</q> &mdash;
+                    något vars innehåll en funktion kan verka på.
+                    Eller: ett universum utav värden, och funktioner kan lyftas
+                    till detta universum.
+                </p>
+                <dl>
+                    <dt><code>[a]</code></dt>
+                    <dd>
+                        Lista med flera värden &mdash; eller endast <em>ett</em> värde med
+                        flera lika sannorlika möjligheter?
+                    </dd>
+
+                    <dt><code>Maybe a</code></dt>
+                    <dd>
+                        En <q>lista</q> med noll eller ett värde &mdash; eller ett
+                        värde som bara <em>kanske</em> finns?
+                    </dd>
+                </dl>
+            </div>
+            <div id="applicative-functors" class="step slide" data-x="23040" data-y="0">
+                <h1>Utökning utav funktorer</h1>
+                <p>
+                    Med en funktor så kan man applicera en funktion med ett argument.
+                    Hur går det med två argument?
+                </p>
+                <content ng-model="applicative">
+                    import Control.Applicative
+                    -- class Functor f => Applicative f where
+                    --   (<*>) :: f (a -> b) -> f a -> f b
+                    --   pure  :: a -> f a
+
+                    list = (*) <$> [1, 2, 3] <*> [2, 3, 4]
+
+                    husbandSurname = Just "Persson"; wifeSurname = Just "Ericsson"
+                    coupleSurname =
+                      let combine h w = w ++ "-" ++ h
+                      in combine <$> husbandSurname <*> wifeSurname
+                </content>
+                <haskell ng-model="applicative"/>
+            </div>
+            <div id="applicative-understanding" class="step slide" data-x="24576" data-y="0">
+                <h1>Förstå applikativa funktorer</h1>
+                <content ng-model="applicativeUnderstanding">
+                    import Control.Applicative
+
+                    list = [(+ 2), (* 2), (/ 2)] <*> [73, 35]
+
+                    threeAndFour = pure (+) <*> pure 1 <*> [2, 3]
+                    threeAndFour' = (+1) <$> [2, 3]
+                    identical = threeAndFour == threeAndFour'
+                </content>
+                <haskell ng-model="applicativeUnderstanding"/>
+            </div>
+            <div id="advanced-functors" class="step slide" data-x="26112" data-y="0">
+                <h1>Kort sidospår: Mer konkreta funktorer</h1>
+                <dl>
+                    <dt><code>IO a</code></dt>
+                    <dd>
+                        Värden som inte finns ännu, men som kommer att finnas när
+                        någon kommunikation med omvärlden skett.
+                    </dd>
+
+                    <dt><code>Rand a</code></dt>
+                    <dd>
+                        Värden som är slumpmässigt bestämda, det vill säga varje
+                        gång man ser på det så kommer det att vara ett annat värde.
+                    </dd>
+                </dl>
+            </div>
+            <div id="io-functor-examples" class="step slide" data-x="27648" data-y="0">
+                <h1><code>IO</code>: Den vanligaste funktorn</h1>
+                <p>
+                    Ett värde i <code>IO</code> är ett program!
+                </p>
+                <content ng-model="ioFunctor">
+                    import Control.Applicative
+
+                    -- OBS: obegränsad IO-evaluering är ej tillåten här! Kopiera
+                    -- innehållet till en .hs-fil och ladda den med ghci lokalt!
+
+                    main :: IO ()
+                    main = print "Hello, World!"
+
+                    readTwoLines :: IO (String, String)
+                    readTwoLines = (\ a b -> (a, b)) <$> getLine <*> getLine
+                </content>
+                <haskell ng-model="ioFunctor"/>
+            </div>
+            <div id="rand-functor-examples" class="step slide" data-x="29184" data-y="0">
+                <h1><code>Rand</code>: En ovanlig funktor</h1>
+                <content ng-model="randFunctor">
+                    import Control.Applicative
+                    import Control.Monad.Random
+                    import System.Random (mkStdGen)
+
+                    die = getRandomR (1, 6)
+
+                    outcome = (+) <$> die <*> die
+
+                    outcome1, outcome2, outcome3 :: Int
+                    outcome1 = evalRand outcome $ seed 1123
+                    outcome2 = evalRand outcome $ seed 7293
+                    outcome3 = evalRand outcome $ seed 3420
+
+                    seed = mkStdGen
+                </content>
+                <haskell ng-model="randFunctor"/>
             </div>
         </div>
         <script src="js/impress.js"></script>
