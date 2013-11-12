@@ -335,13 +335,152 @@
                     outcome = (+) <$> die <*> die
 
                     outcome1, outcome2, outcome3 :: Int
-                    outcome1 = evalRand outcome $ seed 1123
-                    outcome2 = evalRand outcome $ seed 7293
-                    outcome3 = evalRand outcome $ seed 3420
+                    outcome1 = evalRand outcome $ seed 11233152
+                    outcome2 = evalRand outcome $ seed 721432823
+                    outcome3 = evalRand outcome $ seed 342073
 
                     seed = mkStdGen
                 </content>
                 <haskell ng-model="randFunctor"/>
+            </div>
+            <div id="monads-finally" class="step slide" data-x="30720" data-y="0">
+                <h1>Vad är nu monader för något?</h1>
+                <p>
+                    Ytterligare en utökning till funktorer.
+                </p>
+                <content ng-model="monadIntro">
+                    class Monad m where
+                      (>>=) :: m a -> (a -> m b) -> m b
+                      return :: a -> m a
+                      -- etc
+                </content>
+                <haskell ng-model="monadIntro"/>
+            </div>
+            <div id="monad-examples" class="step slide" data-x="32256" data-y="0">
+                <h1>Exempel: Beräkna &pi;!</h1>
+                <content ng-model="monadExamples">
+                    import Data.List
+
+                    inUnitCircle x y = sqrt (x * x + y * y) < 1
+
+                    samples = [-1, -0.99 .. 1]
+
+                    points =
+                      samples >>= \ x ->
+                      samples >>= \ y ->
+                      return $ inUnitCircle x y
+
+                    piApprox = let (inside, outside) = partition id points
+                      in fromIntegral (length inside) / fromIntegral (length outside)
+                </content>
+                <haskell ng-model="monadExamples"/>
+            </div>
+            <div id="monad-pretty" class="step slide" data-x="33792" data-y="0">
+                <h1>Syntaktiskt socker</h1>
+                <content ng-model="monadSugar">
+                    import Data.List
+
+                    inUnitCircle x y = sqrt (x * x + y * y) < 1
+
+                    samples = [-1, -0.99 .. 1]
+
+                    points = do
+                      x <- samples
+                      y <- samples
+                      return $ inUnitCircle x y
+
+                    piApprox = let (inside, outside) = partition id points
+                      in fromIntegral (length inside) / fromIntegral (length outside)
+                </content>
+                <haskell ng-model="monadSugar"/>
+            </div>
+            <div id="monad-io" class="step slide" data-x="35328" data-y="0">
+                <h1>Exempel med <code>IO</code></h1>
+                <content ng-model="monadIOExample">
+                    main = do
+                      putStrLn "What is your name?"
+                      name <- getLine
+                      putStrLn "What is your home town?"
+                      town <- getLine
+                      putStrLn $ "You are " ++ name ++ " from " ++ town
+                </content>
+                <haskell ng-model="monadIOExample"/>
+            </div>
+            <div id="monad-rand" class="step slide" data-x="36864" data-y="0">
+                <h1>Exempel med <code>Rand</code></h1>
+                <content ng-model="monadRandExample">
+                    import Control.Monad.Random
+                    import Data.List
+
+                    inUnitCircle x y = sqrt (x * x + y * y) < 1
+
+                    sample = getRandomR (-1, 1) :: RandomGen g => Rand g Double
+
+                    points = do { x <- sample; y <- sample; return $ inUnitCircle x y }
+
+                    piApprox =
+                      let ps = take 10000 $
+                               unfoldr (Just . runRand points) (mkStdGen 1000)
+                          (inside, outside) = partition id ps
+                      in fromIntegral (length inside) / fromIntegral (length outside)
+                </content>
+                <haskell ng-model="monadRandExample"/>
+            </div>
+            <div id="make-a-monad" class="step slide" data-x="38400" data-y="0">
+                <h1>Göra monader!</h1>
+                <content ng-model="makeAMonad">
+                    data Parser a = Parser { runParser :: String -> Maybe (a, String) }
+
+                    instance Monad Parser where
+                      a >>= f = Parser $ \ s -> case runParser a s of
+                        Just (a, rest) -> runParser (f a) rest
+                        Nothing -> Nothing
+                      return a = Parser $ \ s -> Just (a, s)
+
+                    p1 <|> p2 = Parser $
+                      \ s -> case runParser p1 s of
+                        Just x -> Just x
+                        Nothing -> runParser p2 s
+                </content>
+                <haskell ng-model="makeAMonad"/>
+            </div>
+            <div id="make-a-monad-cont" class="step slide" data-x="39936" data-y="0">
+                <h1>Göra monader: fortsättning</h1>
+                <content ng-model="makeAMonadCont">
+                    --include:makeAMonad
+
+                    char c = Parser $ \ str -> case str of
+                      c' : rest | c == c' -> Just (c, rest)
+                      _ -> Nothing
+
+                    string "" = return ""
+                    string s@(c : cs) = do
+                      char c
+                      string cs
+                      return s
+                </content>
+                <haskell ng-model="makeAMonadCont"/>
+            </div>
+            <div id="make-a-monad-usage" class="step slide" data-x="41472" data-y="0">
+                <content ng-model="makeAMonadUsage">
+                    import Data.Functor
+                    --include:makeAMonad --include:makeAMonadCont
+                    data Direction = Coming | Going deriving Show
+                    data Statement = Greeting String Direction deriving Show
+
+                    direction = (do string "Hej då"; return Going) <|>
+                                (do string "Hej"; return Coming)
+
+                    person = string "Ben" <|> string "Lisa" <|> string "Sam"
+
+                    statement = do { d <- direction; char ' '; p <- person;
+                                     return $ Greeting p d }
+
+                    result1 = fst <$> runParser statement "Hej Ben"
+                    result2 = fst <$> runParser statement "Hej då Lisa"
+                    result3 = fst <$> runParser statement "Varsågod Sam"
+                </content>
+                <haskell ng-model="makeAMonadUsage"/>
             </div>
         </div>
         <script src="js/impress.js"></script>

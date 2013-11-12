@@ -158,7 +158,10 @@ cloudeval.directive ('haskell', ['$timeout', '$http', function ($timeout, $http)
 
       // Actually sends the code to the server and evaluates it
       var compile = function () {
-        $http.post ('evaluate', ngModel.$viewValue, {
+        var code = ngModel.$viewValue.replace(/--include:([a-zA-Z]+)/g, function (a, v) {
+          return $scope.$parent[v] + '\n';
+        });
+        $http.post ('evaluate', code, {
           headers: {
             'Content-Type': 'text/x-haskell'
           },
