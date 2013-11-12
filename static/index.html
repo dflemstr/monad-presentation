@@ -371,7 +371,7 @@
                       return $ inUnitCircle x y
 
                     piApprox = let (inside, outside) = partition id points
-                      in fromIntegral (length inside) / fromIntegral (length outside)
+                      in fromIntegral (4 * length inside) / fromIntegral (length points)
                 </content>
                 <haskell ng-model="monadExamples"/>
             </div>
@@ -390,7 +390,7 @@
                       return $ inUnitCircle x y
 
                     piApprox = let (inside, outside) = partition id points
-                      in fromIntegral (length inside) / fromIntegral (length outside)
+                      in fromIntegral (4 * length inside) / fromIntegral (length points)
                 </content>
                 <haskell ng-model="monadSugar"/>
             </div>
@@ -422,7 +422,7 @@
                       let ps = take 10000 $
                                unfoldr (Just . runRand points) (mkStdGen 1000)
                           (inside, outside) = partition id ps
-                      in fromIntegral (length inside) / fromIntegral (length outside)
+                      in fromIntegral (4 * length inside) / fromIntegral (length ps)
                 </content>
                 <haskell ng-model="monadRandExample"/>
             </div>
