@@ -1,26 +1,3 @@
 <div class="haskell" ng-mouseenter="focused = true" ng-mouseleave="focused = false" ng-class="{focused: focused}">
     <div class="haskell-editor"></div>
-    <div class="haskell-controls pure-form">
-        <select ng-model="expression"
-                ng-options="var.module + '.' + var.variable as var.module + '.' + var.variable for var in scope">
-            <option value="">(Select an expression to show)</option>
-        </select>
-    </div>
-    <div class="haskell-evaluations" ng-class="{active: notEmpty(evaluations)}">
-        <div ng-repeat="(expression, evaluation) in evaluations">
-            <pre ng-show="evaluation.type == 'success'">{{expression}} = {{evaluation.value}} :: {{evaluation.valueType}}</pre>
-            <p ng-show="evaluation.type == 'error'">
-                {{describeError(evaluation.error.kind)}} when trying to show
-                <code>{{expression}}</code>:</p>
-            <pre ng-show="evaluation.type == 'error'">{{evaluation.error.fragments[0].message}}</pre>
-        </div>
-    </div>
-    <div class="haskell-general-error" ng-class="{active: error.kind}">
-        <p>
-            <strong>{{describeError(error.kind)}}</strong>
-            <span ng-repeat="fragment in error.fragments|filter:withoutPosition">
-                {{fragment.message}}
-            </span>
-        </p>
-    </div>
 </div>

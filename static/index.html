@@ -10,8 +10,6 @@
         <script src="js/jquery.min.js"></script>
         <!-- script src="//ajax.googleapis.com/ajax/libs/angularjs/1.1.5/angular.js"></script -->
         <script src="js/angular.js"></script>
-        <script src="js/tooltip.js"></script>
-        <script src="js/popover.js"></script>
         <script src="js/cloudeval.js"></script>
 
         <link rel="stylesheet" href="css/normalize.css"/>
@@ -39,16 +37,20 @@
                 <h2>David Flemström</h2>
             </div>
             <div id="presentation-info" class="step slide" data-x="1500" data-y="0">
-                <h2>Presentationen finns online!</h2>
-                <p>Gå till <a href="http://slides.dflemstr.name/monads">http://slides.dflemstr.name/monads</a></p>
-                <p>Då kan du även redigera exempelkoden själv:</p>
-
-                <content ng-model="test">
-                    fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
-
-                    result = take 10 fibs
-                </content>
-                <haskell ng-model="test"/>
+                <p>
+                    <strong>OBS:</strong> Denna version utav presentationen (till skillnad från den på föreläsningen)
+                    har inte evalueringsstöd för kodexempel.
+                </p>
+                <p>
+                    Vänligen se källkoden som finns i
+                    <a href="http://github.com/dflemstr/monad-presentation">http://github.com/dflemstr/monad-presentation</a>
+                    om du vill köra en variant med evalueringsstöd. Bidrag även gärna med kodändringar!
+                </p>
+                <p>
+                    Om du har tur så finns kanske föreläsningsversionen på
+                    <a href="http://slides.dflemstr.name/monads">http://slides.dflemstr.name/monads</a> fortfarande,
+                    men jag kan ha tagit bort den vid det här laget.
+                </p>
             </div>
             <div id="abstractions" class="step slide" data-x="3000" data-y="0">
                 <h1>Abstraktioner</h1>
