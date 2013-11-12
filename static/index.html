@@ -16,6 +16,12 @@
         <link rel="stylesheet" href="css/main.css"/>
         <link rel="stylesheet" href="css/haskell.css"/>
         <link rel="stylesheet" href="css/popover.css"/>
+
+        <script type="text/ng-template" id="template/haskell.html">
+            <div class="haskell" ng-mouseenter="focused = true" ng-mouseleave="focused = false" ng-class="{focused: focused}">
+                <div class="haskell-editor"></div>
+            </div>
+        </script>
     </head>
     <body class="impress-not-supported" ng-controller="MainCtrl">
         <div class="fallback-message">
