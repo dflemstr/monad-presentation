@@ -4,15 +4,6 @@ var cloudeval = angular.module ('cloudeval', []);
 // code. The editor supports evaluation, showing compiler errors in
 // the right places, etc.
 cloudeval.directive ('haskell', ['$timeout', '$http', function ($timeout, $http) {
-  // Resizes the editor so that it fits snugly around the text content
-  var resizeEditor = function (editor, elem) {
-    elem.css (
-      'height',
-      editor.getSession ().getLength () * editor.renderer.lineHeight + 'px');
-    editor.resize ();
-    editor.renderer.updateFull ();
-  };
-
   return {
     restrict: 'E',
     require: 'ngModel',
@@ -28,17 +19,20 @@ cloudeval.directive ('haskell', ['$timeout', '$http', function ($timeout, $http)
       var editorElem = $element.find ('.haskell-editor');
 
       // The actual editor
-      var editor = ace.edit (editorElem[0]);
-
-      // Load the Ace range implementation so that we can do selection
-      // manipulation
-      var Range = ace.require ('ace/range').Range;
+      var editor = CodeMirror(editorElem[0], {
+        mode: 'haskell',
+        theme: 'pastel-on-dark'
+      });
 
       // Marks compiler errors in code
       var errorMarkers = [];
 
-      // Elements that the popovers we create are 'bound to'
-      var elemsWithPopovers = [];
+      var resizeEditor = function () {
+        var height = (editor.lastLine () - editor.firstLine () + 2) * editor.defaultTextHeight ();
+        editor.setSize ('100%', height + 'px');
+      };
+
+      setInterval(resizeEditor, 1000);
 
       // Do I really have to do this myself? What is this, the 90's?
       var htmlEscape = function (str) {
@@ -75,80 +69,36 @@ cloudeval.directive ('haskell', ['$timeout', '$http', function ($timeout, $http)
         return object && Object.keys(object).length > 0;
       };
 
-      // Hide all popovers that resulted from errors by simulating
-      // mouse movement
-      var clearErrorPopovers = function () {
-        var markers = editor.getSession ().getMarkers (true);
-
-        for (var i = 0; i < markers.length; i++) {
-          var marker = markers[i];
-          if (marker.mouseInside) {
-            var elem = $('[data-error-index="' + marker.errorIndex + '"]');
-            elem.trigger ('mouseleave.popover');
-            marker.mouseInside = false;
-          }
-        }
-      };
-
       // Remove all error markers and related popovers
-      var clearErrors = function () {
-        var session = editor.getSession ();
-        clearErrorPopovers ();
+      var clearErrorFragments = function () {
         for (var i = 0; i < errorMarkers.length; i++) {
-          session.removeMarker (errorMarkers[i]);
+          errorMarkers[i].clear();
         }
         errorMarkers = [];
       };
 
-      // Render a compiler error in the editor
-      var drawCompilerError = function (n, error) {
-        var betterErrorMessage =
-          // Wrap everything in a paragraph
-          ('<p>' + htmlEscape(error) + '</p>')
-        // Create a new paragraph whenever there's an indented line
-          .replace(/\n\s+/g, '</p><p>')
-        // Something that is enclosed in GHC `quotes' is probably code
-          .replace (/`([^\s]+)'/g, function (m, w) {
-            return '<code>' + w + '</code>';
-          });
-
-        return function (html, range, left, top, config) {
-          this.errorIndex = n;
-          html.push(
-            '<div class="haskell-compiler-error" style="',
-            'height:', config.lineHeight, 'px;',
-            'width:', (range.end.column - range.start.column) *
-              config.characterWidth, 'px;',
-            'top:', top, 'px;',
-            'left:', left, 'px;" data-error-index="', n,
-            '" data-content="', htmlEscape(betterErrorMessage), '"></div>'
-          );
-        };
+      var addErrorFragment = function (fragment) {
+        var position = fragment.position;
+        errorMarkers.push (editor.markText (
+          {line: position.start.row - 1, ch: position.start.col - 1},
+          {line: position.end.row - 1, ch: position.end.col - 1}, {
+            className: 'haskell-compiler-error',
+            title: fragment.message
+          }
+        ));
       };
 
       // Extracts the error fragments from the specified list that can
       // be shown in the code editor, and shows them.
       var markErrors = function (fragments) {
-        var session = editor.getSession ();
         fragments = fragments || [];
 
-        clearErrors ();
+        clearErrorFragments ();
 
         for (var i = 0; i < fragments.length; i++) {
           // Can the error be associated with a position in the code?
           if (fragments[i].position) {
-            var fragment = fragments[i];
-            var position = fragment.position;
-            var range =
-              new Range (position.start.row - 1,
-                         position.start.col - 1,
-                         position.end.row - 1,
-                         Math.max(position.end.col - 1, position.start.col));
-
-            errorMarkers.push (
-              session.addMarker (
-                range, 'haskell-compiler-error',
-                drawCompilerError(i, fragment.message), true));
+            addErrorFragment(fragments[i]);
           }
         }
       };
@@ -187,19 +137,11 @@ cloudeval.directive ('haskell', ['$timeout', '$http', function ($timeout, $http)
         compilationTimeout = $timeout (compile, 300);
       };
 
-      editor.setTheme ('ace/theme/' + ($attrs.theme || 'tomorrow_night'));
-      editor.getSession ().setMode ('ace/mode/haskell');
-
-      editor.setFontSize (24);
-      editor.setShowPrintMargin (false);
-      editor.renderer.setShowGutter (false);
-      //editor.setShowInvisibles (true);
-
       // Sync angular model with editor
       ngModel.$render = function () {
-        editor.setValue (ngModel.$viewValue, 1);
+        editor.setValue (ngModel.$viewValue);
         queueCompilation ();
-        resizeEditor (editor, editorElem);
+        resizeEditor ();
       };
 
       $scope.$watch ('expression', queueCompilation);
@@ -208,57 +150,9 @@ cloudeval.directive ('haskell', ['$timeout', '$http', function ($timeout, $http)
       editor.on ('change', function () {
         ngModel.$setViewValue (editor.getValue ());
         queueCompilation ();
-        resizeEditor (editor, editorElem);
+        resizeEditor ();
       });
-
-      // Make popovers disappear if the editor decides to remove a
-      // marker
-      editor.getSession ().addEventListener ('changeFrontMarker', function () {
-        for (var i = 0; i < elemsWithPopovers.length; i++) {
-          elemsWithPopovers[i].popover ('hide');
-        }
-        elemsWithPopovers = [];
-      });
-
-      // Configure a popover on the editor
-      editorElem.popover ({
-        selector: '.haskell-compiler-error',
-        trigger: 'hover',
-        placement: 'auto',
-        container: 'body',
-        html: true,
-        delay: { show: 300, hide: 1000 }
-      });
-
-      // Since the code markers are behind a div, it doesn't receive
-      // mouse events.  So we have to intercept editor mouse events,
-      // and proxy them to the relevant error marker, to show a popup.
-      editor.on ('mousemove', function (e) {
-        var pos = e.getDocumentPosition ();
-        var markers = editor.getSession ().getMarkers (true);
-
-        for (var i = 0; i < errorMarkers.length; i++) {
-          var marker = markers[errorMarkers[i]];
-          var elem = $('[data-error-index="' + marker.errorIndex + '"]');
-
-          if (marker.range.compare (pos.row, pos.column) == 0) {
-            if (!marker.mouseInside) {
-              elem.trigger ('mouseenter.popover');
-              elemsWithPopovers.push (elem);
-              marker.mouseInside = true;
-            }
-          } else {
-            if (marker.mouseInside) {
-              elem.trigger ('mouseleave.popover');
-              marker.mouseInside = false;
-            }
-          }
-        }
-      });
-
-      // Just remove all popovers when editor is left
-      editorElem.on ('mouseleave', clearErrorPopovers);
-    },
+    }
   };
 }]);
 
