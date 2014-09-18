@@ -16,50 +16,53 @@ import Control.Exception
   (AsyncException (..), catch, catches, Exception, SomeException)
 import qualified Control.Exception as Exception (Handler (..))
 import Control.Monad (forM)
+import Control.Monad.Reader.Class (asks)
 import Control.Monad.Error.Class (catchError)
 
+import Data.Aeson.Encode (encode)
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Base64 as Base64 (decodeLenient)
+import Data.ByteString.Lazy (toStrict)
 import Data.Functor ((<$>))
 import qualified Data.HashMap.Strict as HashMap
 import Data.List (isInfixOf, nub)
 import Data.Text (pack, unpack)
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 
-import Language.Haskell.Interpreter
+import Language.Haskell.Interpreter hiding (get)
 import Language.Haskell.Interpreter.Unsafe
 
-import Network.Wai (requestBody)
-import Network.Wai.Application.Static
-  (defaultFileServerSettings, StaticSettings(..))
+import Network.Miku
+import Network.Miku.Type (AppMonad)
+import Hack2.Contrib.Request (params)
+import Hack2.Handler.SnapServer
 
 -- Internal GHC module; might break this code in the future!
 import qualified SrcLoc
 
-import System.Environment (getArgs, getProgName)
-
-import Yesod
-import Yesod.Static
+import System.Environment (getArgs)
 
 -- Our own modules:
 import Limits (limitTime, TimeoutException (..))
 import TempFile (withSourceAsTempFile)
 import Types
 
-data CloudEval =
-  CloudEval
-  { getInterpreterLock :: MVar ()
-  , getStatic :: Static
-  }
-
-instance Yesod CloudEval
-
 deriveNFData ''InterpreterError
 
 -- Just to make some instance declarations work
 instance NFData GhcError where
 
-mkYesod "CloudEval" [parseRoutesNoCheck|
-/evaluate   EvaluateR   POST
-/           StaticR     Static getStatic
-|]
+main :: IO ()
+main = do
+  [staticDir] <- getArgs
+  lock <- newMVar ()
+  run . miku $ do
+    get "/evaluate" $ do
+      ps <- asks params
+      let exprs = [unpack . decodeUtf8 $ expr | ("expression", expr) <- ps]
+          code = head [Base64.decodeLenient c | ("code", c) <- ps]
+      postEvaluateR exprs code lock
+    public (Just . encodeUtf8 . pack $ staticDir) ["/index.html", "/favicon.ico", "/css", "/js", "/template"]
 
 -- | Catch all exceptions thrown by the specified action and convert
 -- them to an 'Error'.
@@ -92,16 +95,8 @@ catchExceptions action =
 -- compiler errors or the variables in scope of the module, and
 -- optionally evaluates and shows the given expression(s) in the
 -- context of the module.
-postEvaluateR :: Handler TypedContent
-postEvaluateR = do
-  request <- getRequest
-  lock <- getInterpreterLock <$> getYesod
-
-  -- This is a Conduit source, so the request body is actually never
-  -- loaded into memory (Depends on what WAI does).
-  let body = requestBody . reqWaiRequest $ request
-      exprs = [unpack expr | ("expression", expr) <- reqGetParams request]
-
+postEvaluateR :: [String] -> ByteString -> MVar () -> AppMonad
+postEvaluateR exprs body lock = do
   interpreterResult <-
     liftIO .
     -- Save the POST body to a temp file and use it
@@ -141,9 +136,7 @@ postEvaluateR = do
           (uncurry ResultSuccess . first HashMap.fromList))
         interpreterResult
 
-  selectRep $ do
-    provideRep . return . pack . show $ result
-    provideJson result
+  json . toStrict . encode $ result
 
 retryOn :: (Exception e) => e -> IO a -> IO a
 retryOn e action =
@@ -170,16 +163,3 @@ parseError (NotAllowed err) =
   Error Restriction [ErrorFragment Nothing err]
 parseError (GhcException err) =
   Error Ghc [ErrorFragment Nothing err]
-
-main :: IO ()
-main = do
-  args <- getArgs
-  case args of
-    [port] -> do
-      lock <- newMVar ()
-      let staticSettings =
-            (defaultFileServerSettings "static") { ssListing = Nothing }
-      warp (read port) . CloudEval lock . Static $ staticSettings
-    _ -> do
-      progName <- getProgName
-      putStrLn $ "Usage: " ++ progName ++ " <port>"

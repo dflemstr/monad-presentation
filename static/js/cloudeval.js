@@ -161,11 +161,12 @@ cloudeval.directive ('haskell', ['$timeout', '$http', function ($timeout, $http)
         var code = ngModel.$viewValue.replace(/--include:([a-zA-Z]+)/g, function (a, v) {
           return $scope.$parent[v] + '\n';
         });
-        $http.post ('evaluate', code, {
+        $http.get ('evaluate', {
           headers: {
             'Content-Type': 'text/x-haskell'
           },
           params: {
+            code: Base64.encode(code),
             expression: $scope.expression
           }
         }).success (function (data, status) {
