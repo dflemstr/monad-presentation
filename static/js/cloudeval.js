@@ -10,6 +10,7 @@ cloudeval.directive ('haskell', ['$timeout', '$http', function ($timeout, $http)
       'height',
       editor.getSession ().getLength () * editor.renderer.lineHeight + 'px');
     editor.resize ();
+    editor.renderer.updateFull ();
   };
 
   return {
@@ -162,9 +163,6 @@ cloudeval.directive ('haskell', ['$timeout', '$http', function ($timeout, $http)
           return $scope.$parent[v] + '\n';
         });
         $http.get ('evaluate', {
-          headers: {
-            'Content-Type': 'text/x-haskell'
-          },
           params: {
             code: Base64.encode(code),
             expression: $scope.expression
