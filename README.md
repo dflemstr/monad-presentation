@@ -4,6 +4,15 @@ This is a presentation in swedish about monads.  It uses a Yesod
 back-end that lets the user evaluate code examples directly in the
 browser.
 
+# Running
+
+The repository is packaged as a Docker image.  Install Docker and run:
+
+    docker run -p 3000:3000 dflemstr/monad-presentation
+
+The web application will be reachable at
+<http://localhost:3000/index.html>.
+
 # Installation
 
 Because I'm lazy, I modified some packages directly to make cloudeval
