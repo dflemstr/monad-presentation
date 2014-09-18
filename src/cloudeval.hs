@@ -105,8 +105,8 @@ postEvaluateR exprs body lock = do
     withMVar lock $ const .
     -- Catch all exceptions, and convert them to error messages
     catchExceptions .
-    -- You get max 1s
-    limitTime 1000000 .
+    -- You get max 10s
+    limitTime 10000000 .
     -- This happens sometimes... basically use a spinlock to wait
     -- until ready. TODO: figure out why this exception is thrown
     retryOn MultipleInstancesNotAllowed .

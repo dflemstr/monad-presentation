@@ -2,7 +2,7 @@ var SLIDE_CONFIG = {
   // Slide settings
   settings: {
     title: 'Monads',
-    subtitle: '',
+    subtitle: 'The power of sequencing',
     //eventInfo: {
     //  title: 'Google I/O',
     //  date: '6/x/2013'
@@ -23,7 +23,7 @@ var SLIDE_CONFIG = {
   // Author information
   presenters: [{
     name: 'David Flemström',
-    company: 'Spotify',
+    company: '',
     twitter: '@dflemstr',
     www: 'http://dflemstr.name',
     github: 'http://github.com/dflemstr'

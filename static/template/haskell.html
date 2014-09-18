@@ -17,7 +17,7 @@
     </div>
     <div class="haskell-general-error" ng-class="{active: error.kind}">
         <p>
-            <strong>{{describeError(error.kind)}}</strong>
+            <strong>{{describeError(error.kind)}}:</strong>
             <span ng-repeat="fragment in error.fragments|filter:withoutPosition">
                 {{fragment.message}}
             </span>
