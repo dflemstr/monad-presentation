@@ -21,7 +21,7 @@ cloudeval.directive ('haskell', ['$timeout', '$http', function ($timeout, $http)
       // The actual editor
       var editor = CodeMirror(editorElem[0], {
         mode: 'haskell',
-        theme: 'pastel-on-dark'
+        theme: 'elegant'
       });
 
       // Marks compiler errors in code
